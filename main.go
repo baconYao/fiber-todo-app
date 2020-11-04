@@ -27,6 +27,11 @@ func Setup() *fiber.App {
 		return c.SendString("OK, Yao test")
 	})
 
+	// 404 Handler
+	app.Use(func(c *fiber.Ctx) error {
+		return c.SendStatus(404) // => 404 "Not Found"
+	})
+
 	// Return the configured app
 	return app
 }
