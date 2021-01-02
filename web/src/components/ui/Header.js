@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 // MUI
@@ -12,6 +12,10 @@ import AccountCircle from '@material-ui/icons/AccountCircle';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
+import SwipeableDrawer from '@material-ui/core/SwipeableDrawer';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -26,12 +30,15 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Header(props) {
-  const classes = useStyles();
-  const [auth, setAuth] = React.useState(true);
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const open = Boolean(anchorEl);
-
   const theme = useTheme();
+  const classes = useStyles();
+  const [auth, setAuth] = useState(true);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+  const [openDrawer, setOpenDrawer] = useState(false);
+
+  // https://material-ui.com/components/drawers/#swipeable
+  const iOS = process.browser && /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isMobile = useMediaQuery(theme.breakpoints.down("xs"));
 
   const handleMenu = (event) => {
@@ -96,7 +103,41 @@ export default function Header(props) {
   // TODO: 手機版的 header
   const drawerMenu = (
     <React.Fragment>
-
+      <SwipeableDrawer
+        disableBackdropTransition={!iOS}
+        disableDiscovery={iOS}
+        open={openDrawer}
+        onClose={() => setOpenDrawer(false)}
+        onOpen={() => setOpenDrawer(true)}
+        // classes={{paper: classes.drawer}}
+      >
+        {/* <div className={classes.toolBarMargin} /> */}
+        <List disablePadding>
+          {routes.map((route, i) => (
+            <ListItem
+              divider
+              key={`${route.name}-${i}`}
+              button
+              component={Link}
+              to={route.link}
+              onClick={() => {setOpenDrawer(false)}}
+            >
+              <ListItemText
+                disableTypography
+              >
+                {route.name}
+              </ListItemText>
+            </ListItem>
+          ))}
+        </List>
+      </SwipeableDrawer>
+      <IconButton 
+        edge="start" className={classes.menuButton} color="inherit" aria-label="menu"
+        onClick={() => setOpenDrawer(!openDrawer)}
+        disableRipple
+      >
+        <MenuIcon className={classes.drawerIcon}/>
+      </IconButton>
     </React.Fragment>
   )
 
@@ -104,18 +145,13 @@ export default function Header(props) {
     <div className={classes.root}>
       <AppBar position="static">
         <Toolbar>
-          {isMobile && 
-            <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
-              <MenuIcon />
-            </IconButton>
-          }
+          {/* 手機版 header */}
+          { isMobile && auth && drawerMenu }
           <Typography variant="h6" color="secondary" className={classes.title}>
             Yao Todo-List
           </Typography>
-          { !isMobile && auth && (
-            iconMenu
-            
-          )}
+          {/* 非手機版 header */}
+          { !isMobile && auth && iconMenu }
         </Toolbar>
       </AppBar>
     </div>
